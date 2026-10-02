@@ -1,0 +1,325 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Sistema de diseño: tokens semánticos inspirados en herramientas ITSM
+ * (Jira Service Management, ServiceNow). Colores planos, sin degradados.
+ * Los componentes usan solo estos tokens, así el modo oscuro no necesita
+ * variantes dark: en cada plantilla.
+ */
+:root {
+  --canvas: #f7f8f9;
+  --surface: #ffffff;
+  --surface-sunken: #f7f8f9;
+  --surface-hover: #f1f2f4;
+  --line: #dcdfe4;
+  --line-strong: #b3b9c4;
+  --fg: #172b4d;
+  --fg-muted: #44546f;
+  --fg-subtle: #626f86;
+
+  --primary: #0c66e4;
+  --primary-hover: #0055cc;
+  --primary-fg: #ffffff;
+  --primary-soft: #e9f2ff;
+  --primary-soft-fg: #0055cc;
+
+  --danger: #c9372c;
+  --danger-hover: #ae2e24;
+  --danger-soft: #ffeceb;
+  --danger-soft-fg: #ae2e24;
+  --success-soft: #dcfff1;
+  --success-soft-fg: #216e4e;
+  --warning-soft: #fff7d6;
+  --warning-soft-fg: #7f5f01;
+  --orange-soft: #fff3eb;
+  --orange-soft-fg: #a54800;
+  --neutral-soft: #f1f2f4;
+  --neutral-soft-fg: #44546f;
+
+  /* Relleno de barras de estado (validado con dataviz/validate_palette) */
+  --chart-open: #1d7afc;
+  --chart-progress: #e2a203;
+  --chart-closed: #22a06b;
+
+  --nav: #172b4d;
+  --nav-fg: #b6c2cf;
+  --nav-fg-active: #ffffff;
+  --nav-hover: rgb(255 255 255 / 0.08);
+  --nav-active: rgb(87 157 255 / 0.18);
+  --nav-accent: #579dff;
+  --nav-line: rgb(255 255 255 / 0.1);
+
+  --focus: #388bff;
+  --overlay: rgb(9 30 66 / 0.54);
+
+  color-scheme: light;
+}
+
+.dark {
+  --canvas: #161a1d;
+  --surface: #1d2125;
+  --surface-sunken: #161a1d;
+  --surface-hover: #282e33;
+  --line: #2c333a;
+  --line-strong: #454f59;
+  --fg: #dee4ea;
+  --fg-muted: #9fadbc;
+  --fg-subtle: #8c9bab;
+
+  --primary: #579dff;
+  --primary-hover: #85b8ff;
+  --primary-fg: #1d2125;
+  --primary-soft: #092957;
+  --primary-soft-fg: #85b8ff;
+
+  --danger: #f87168;
+  --danger-hover: #fd9891;
+  --danger-soft: #42221f;
+  --danger-soft-fg: #fd9891;
+  --success-soft: #1c3329;
+  --success-soft-fg: #7ee2b8;
+  --warning-soft: #332e1b;
+  --warning-soft-fg: #f5cd47;
+  --orange-soft: #38291e;
+  --orange-soft-fg: #fec195;
+  --neutral-soft: #2c333a;
+  --neutral-soft-fg: #b6c2cf;
+
+  --chart-open: #388bff;
+  --chart-progress: #b38600;
+  --chart-closed: #1f9f6a;
+
+  --nav: #101214;
+  --nav-line: rgb(255 255 255 / 0.08);
+
+  --overlay: rgb(0 0 0 / 0.6);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-fg: var(--primary-soft-fg);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-soft-fg: var(--danger-soft-fg);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-fg: var(--success-soft-fg);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-fg: var(--warning-soft-fg);
+  --color-orange-soft: var(--orange-soft);
+  --color-orange-soft-fg: var(--orange-soft-fg);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-neutral-soft-fg: var(--neutral-soft-fg);
+
+  --color-chart-open: var(--chart-open);
+  --color-chart-progress: var(--chart-progress);
+  --color-chart-closed: var(--chart-closed);
+
+  --color-nav: var(--nav);
+  --color-nav-fg: var(--nav-fg);
+  --color-nav-fg-active: var(--nav-fg-active);
+  --color-nav-hover: var(--nav-hover);
+  --color-nav-active: var(--nav-active);
+  --color-nav-accent: var(--nav-accent);
+  --color-nav-line: var(--nav-line);
+
+  --color-focus: var(--focus);
+  --color-overlay: var(--overlay);
+
+  --animate-dialog-in: dialog-in 0.16s ease-out;
+  --animate-skeleton: skeleton 1.2s ease-in-out infinite;
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes skeleton {
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-sm text-fg;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Superficies */
+  .card {
+    @apply rounded-lg border border-line bg-surface;
+  }
+
+  .card-header {
+    @apply flex items-center justify-between gap-3 border-b border-line px-4 py-3;
+  }
+
+  .card-title {
+    @apply text-sm font-semibold text-fg;
+  }
+
+  .page {
+    @apply mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6;
+  }
+
+  .page-header {
+    @apply flex flex-wrap items-end justify-between gap-4;
+  }
+
+  .page-title {
+    @apply text-xl font-semibold tracking-tight text-fg;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-fg-subtle;
+  }
+
+  /* Botones */
+  .btn {
+    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-fg hover:bg-primary-hover;
+  }
+
+  .btn-secondary {
+    @apply border border-line bg-surface text-fg hover:bg-surface-hover;
+  }
+
+  .btn-subtle {
+    @apply text-fg-muted hover:bg-surface-hover hover:text-fg;
+  }
+
+  .btn-danger {
+    @apply bg-danger text-white hover:bg-danger-hover;
+  }
+
+  .btn-icon {
+    @apply inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-fg-subtle transition-colors hover:bg-surface-hover hover:text-fg disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  /* Formularios */
+  .label {
+    @apply mb-1 block text-xs font-semibold text-fg-muted;
+  }
+
+  .input {
+    @apply block h-9 w-full rounded-md border border-line-strong bg-surface px-3 text-sm text-fg transition-colors placeholder:text-fg-subtle hover:border-fg-subtle focus:border-primary focus:ring-2 focus:ring-primary/25 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-hover disabled:text-fg-subtle;
+  }
+
+  textarea.input {
+    @apply h-auto min-h-24 py-2;
+  }
+
+  .input[aria-invalid='true'],
+  .input.ng-invalid.ng-touched {
+    @apply border-danger focus:ring-danger/25;
+  }
+
+  .field-error {
+    @apply mt-1 block text-xs text-danger;
+  }
+
+  .field-hint {
+    @apply mt-1 block text-xs text-fg-subtle;
+  }
+
+  /* Alertas en línea */
+  .alert {
+    @apply flex items-start gap-2 rounded-md border px-3 py-2 text-sm;
+  }
+
+  .alert-error {
+    @apply border-danger/30 bg-danger-soft text-danger-soft-fg;
+  }
+
+  .alert-success {
+    @apply border-success-soft-fg/30 bg-success-soft text-success-soft-fg;
+  }
+
+  .alert-info {
+    @apply border-primary/30 bg-primary-soft text-primary-soft-fg;
+  }
+
+  /* Etiqueta de estado estilo "lozenge" */
+  .lozenge {
+    @apply inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] leading-4 font-bold tracking-wide whitespace-nowrap uppercase;
+  }
+
+  /* Tablas de datos */
+  .data-table {
+    @apply w-full border-collapse text-left text-sm;
+  }
+
+  .data-table thead th {
+    @apply border-b-2 border-line px-4 py-2.5 text-xs font-semibold whitespace-nowrap text-fg-subtle;
+  }
+
+  .data-table tbody td {
+    @apply border-b border-line px-4 py-3 align-middle text-fg;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-surface-hover;
+  }
+
+  .data-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .ticket-key {
+    @apply font-mono text-xs font-medium whitespace-nowrap text-fg-subtle;
+  }
+
+  .skeleton {
+    @apply animate-skeleton rounded bg-surface-hover;
+  }
+}

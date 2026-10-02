@@ -1,0 +1,52 @@
+<div class="w-full">
+  <div class="relative flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 transition-all duration-200"
+       [class.ring-2]="hasActiveSearch()"
+       [class.ring-blue-500]="hasActiveSearch()">
+
+    <!-- Icono de búsqueda -->
+    <svg class="w-5 h-5 text-gray-400 dark:text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+    </svg>
+
+    <!-- Input de búsqueda -->
+    <input
+      type="text"
+      [value]="searchTerm()"
+      (input)="onSearchChange($event.target.value)"
+      [placeholder]="placeholder()"
+      class="flex-1 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none text-sm"
+      aria-label="Search"
+    />
+
+    <!-- Indicador de carga (debounce) -->
+    @if (isSearching()) {
+      <div class="flex items-center gap-1">
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-100"></div>
+        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce animation-delay-200"></div>
+      </div>
+    }
+
+    <!-- Botón limpiar (mostrar solo si hay búsqueda activa) -->
+    @if (hasActiveSearch()) {
+      <button
+        (click)="clearSearch()"
+        class="shrink-0 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors"
+        aria-label="Clear search">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    }
+  </div>
+
+  <!-- Información de resultados (opcional) -->
+  @if (hasActiveSearch()) {
+    <div class="mt-2 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+      </svg>
+      <span>{{ getResultCount() }} resultado{{ getResultCount() !== 1 ? 's' : '' }} encontrado{{ getResultCount() !== 1 ? 's' : '' }}</span>
+    </div>
+  }
+</div>

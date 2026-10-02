@@ -1,0 +1,13 @@
+/* Animación de delay para los puntos de carga */
+.animation-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+/* Transición suave para el focus ring */
+:host {
+  @apply transition-all duration-200;
+}

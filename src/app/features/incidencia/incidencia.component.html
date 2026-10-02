@@ -1,0 +1,412 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Incidencias</h1>
+      <p class="page-subtitle">
+        @if (authService.isAdmin()) {
+          Todas las incidencias registradas en la mesa de servicio.
+        } @else {
+          Incidencias que reportaste o que tienes asignadas.
+        }
+      </p>
+    </div>
+    @if (authService.puedeCrearIncidencia()) {
+      <button type="button" class="btn btn-primary" (click)="abrirCrear()">
+        <app-icon name="plus" /> Nueva incidencia
+      </button>
+    }
+  </header>
+
+  @if (aviso()) {
+    <p class="alert alert-success" role="status">
+      <app-icon name="check" class="mt-0.5" />
+      <span class="flex-1">{{ aviso() }}</span>
+      <button type="button" class="btn-icon -my-1 h-6 w-6" (click)="aviso.set('')" aria-label="Cerrar aviso">
+        <app-icon name="x" [size]="14" />
+      </button>
+    </p>
+  }
+
+  <section class="card overflow-hidden">
+    <div class="flex flex-wrap items-center gap-2 border-b border-line p-3">
+      <div class="w-full sm:w-80">
+        <app-buscador-input
+          placeholder="Buscar por resumen o descripción"
+          [searchTerm]="searchTerm()"
+          (searchTermChange)="buscar($event)"
+        />
+      </div>
+      <app-auto-refresco-badge class="ml-auto" />
+      <button
+        type="button"
+        class="btn btn-subtle"
+        (click)="getIncidencias()"
+        [disabled]="loading()"
+      >
+        <app-icon name="refresh" /> Actualizar
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="data-table min-w-[960px]">
+        <thead>
+          <tr>
+            <th scope="col" class="w-24">Clave</th>
+            <th scope="col">Resumen</th>
+            <th scope="col" class="w-28">Prioridad</th>
+            <th scope="col" class="w-32">Estado</th>
+            <th scope="col" class="w-40">Asignado a</th>
+            <th scope="col" class="w-28">Creada</th>
+            <th scope="col" class="w-px text-right"><span class="sr-only">Acciones</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading()) {
+            @for (i of esqueleto(); track i) {
+              <tr aria-hidden="true">
+                <td><div class="skeleton h-3 w-16"></div></td>
+                <td>
+                  <div class="skeleton h-3.5 w-64"></div>
+                  <div class="skeleton mt-2 h-3 w-32"></div>
+                </td>
+                <td><div class="skeleton h-3 w-14"></div></td>
+                <td><div class="skeleton h-4 w-20"></div></td>
+                <td><div class="skeleton h-3 w-28"></div></td>
+                <td><div class="skeleton h-3 w-20"></div></td>
+                <td></td>
+              </tr>
+            }
+          } @else if (errorListado()) {
+            <tr>
+              <td colspan="7" class="py-12 text-center">
+                <app-icon name="alert" [size]="28" class="mx-auto text-danger" />
+                <p class="mt-2 font-medium text-fg">{{ errorListado() }}</p>
+                <button type="button" class="btn btn-secondary mt-4" (click)="getIncidencias()">
+                  Reintentar
+                </button>
+              </td>
+            </tr>
+          } @else {
+            @for (incident of incidentService.incidencias(); track incident.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['seguimiento', incident.id]" class="ticket-key hover:text-primary hover:underline">
+                    {{ ticketKey(incident.id) }}
+                  </a>
+                </td>
+                <td class="min-w-56">
+                  <a
+                    [routerLink]="['seguimiento', incident.id]"
+                    class="line-clamp-2 font-medium text-fg hover:text-primary hover:underline"
+                    >{{ incident.titulo }}</a
+                  >
+                  <p class="mt-0.5 truncate text-xs text-fg-subtle">
+                    Reportado por {{ incident.usuario.nombre }}
+                    @if (incident.equipo; as eq) {
+                      · <span [title]="eq.nombre">Equipo {{ eq.codigo }}</span>
+                    }
+                  </p>
+                </td>
+                <td><app-priority-badge [prioridad]="incident.prioridad" /></td>
+                <td><app-status-badge [estado]="incident.estado" /></td>
+                <td>
+                  @if (incident.tecnico; as tec) {
+                    <span class="flex items-center gap-2">
+                      <app-avatar [nombre]="tec.nombre" [size]="24" />
+                      <span class="truncate">{{ tec.nombre }}</span>
+                    </span>
+                  } @else {
+                    <span class="text-fg-subtle italic">Sin asignar</span>
+                  }
+                </td>
+                <td class="whitespace-nowrap text-fg-muted" [title]="incident.fechaCreacion | date: 'dd/MM/yyyy HH:mm'">
+                  {{ incident.fechaCreacion | date: 'dd MMM yyyy' }}
+                </td>
+                <td>
+                  <div class="flex items-center justify-end gap-0.5">
+                    <button
+                      type="button"
+                      class="btn-icon"
+                      (click)="openModal(incident.id)"
+                      title="Ver detalle"
+                      [attr.aria-label]="'Ver detalle de ' + ticketKey(incident.id)"
+                    >
+                      <app-icon name="eye" />
+                    </button>
+                    <a
+                      class="btn-icon"
+                      [routerLink]="['seguimiento', incident.id]"
+                      title="Seguimiento"
+                      [attr.aria-label]="'Seguimiento de ' + ticketKey(incident.id)"
+                    >
+                      <app-icon name="message" />
+                    </a>
+                    @if (puedeCambiarEstado(incident)) {
+                      <button
+                        type="button"
+                        class="btn-icon"
+                        (click)="changeState(incident)"
+                        title="Cambiar estado"
+                        [attr.aria-label]="'Cambiar estado de ' + ticketKey(incident.id)"
+                      >
+                        <app-icon name="activity" />
+                      </button>
+                    }
+                    @if (authService.isAdmin()) {
+                      <button
+                        type="button"
+                        class="btn-icon"
+                        (click)="changeIsOpenTecnicos(incident)"
+                        [disabled]="incident.estado === 'CERRADO'"
+                        [title]="incident.estado === 'CERRADO' ? 'No se puede reasignar una incidencia cerrada' : 'Asignar técnico'"
+                        [attr.aria-label]="'Asignar técnico a ' + ticketKey(incident.id)"
+                      >
+                        <app-icon name="wrench" />
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-icon"
+                        (click)="abrirEditar(incident)"
+                        title="Editar"
+                        [attr.aria-label]="'Editar ' + ticketKey(incident.id)"
+                      >
+                        <app-icon name="pencil" />
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="py-14 text-center">
+                  <app-icon name="inbox" [size]="32" class="mx-auto text-fg-subtle" />
+                  @if (searchTerm()) {
+                    <p class="mt-3 font-medium text-fg">Sin resultados para “{{ searchTerm() }}”</p>
+                    <p class="mt-1 text-fg-subtle">Prueba con otras palabras.</p>
+                  } @else {
+                    <p class="mt-3 font-medium text-fg">No hay incidencias todavía</p>
+                    @if (authService.puedeCrearIncidencia()) {
+                      <p class="mt-1 text-fg-subtle">Cuando reportes un problema aparecerá aquí.</p>
+                      <button type="button" class="btn btn-primary mt-4" (click)="abrirCrear()">
+                        <app-icon name="plus" /> Nueva incidencia
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination [page]="page()" [(current)]="pageCurrent" [(size)]="size" />
+  </section>
+</div>
+
+<!-- DETALLE -->
+<app-detalle-modal
+  [(modal)]="verDetalle"
+  [data]="dataForModal()"
+  [fields]="incidenciaFields"
+  [error]="errorDetalle()"
+  [title]="dataForModal() ? ticketKey(dataForModal()!.id) : 'Detalle de la incidencia'"
+>
+  <div footer class="mt-6 flex justify-end border-t border-line pt-4">
+    @if (dataForModal(); as d) {
+      <a [routerLink]="['seguimiento', d.id]" class="btn btn-primary">
+        <app-icon name="message" /> Ir al seguimiento
+      </a>
+    }
+  </div>
+</app-detalle-modal>
+
+<!-- CREAR -->
+<app-modal-generic
+  [(isOpen)]="isOpenCreate"
+  title="Nueva incidencia"
+  description="Describe el problema; se asignará a un técnico disponible automáticamente."
+  size="lg"
+>
+  @if (isOpenCreate()) {
+    <app-incidencia-form
+      [loading]="guardando()"
+      [error]="errorForm()"
+      (create)="submitCreate($event)"
+      (cancel)="isOpenCreate.set(false)"
+    />
+  }
+</app-modal-generic>
+
+<!-- EDITAR (ADMIN) -->
+<app-modal-generic
+  [(isOpen)]="isOpenEdit"
+  [title]="'Editar ' + ticketKey(incidenciaEditar()?.id)"
+  description="Los cambios quedan registrados en el seguimiento de la incidencia."
+  size="lg"
+>
+  @if (isOpenEdit() && incidenciaEditar(); as inc) {
+    <app-incidencia-form
+      [incidencia]="inc"
+      [tecnicos]="tecnicos()"
+      [loading]="guardando()"
+      [error]="errorForm()"
+      (update)="submitEdit($event)"
+      (cancel)="isOpenEdit.set(false)"
+    />
+  }
+</app-modal-generic>
+
+<!-- CAMBIAR ESTADO -->
+<app-modal-generic
+  [(isOpen)]="isOpenChangeState"
+  title="Cambiar estado"
+  [description]="ticketKey(incidenciaEstado()?.id) + ' · ' + (incidenciaEstado()?.titulo ?? '')"
+  size="sm"
+>
+  <form (submit)="$event.preventDefault(); submitChangeState()" class="space-y-4">
+    @if (errorEstado()) {
+      <p class="alert alert-error" role="alert">{{ errorEstado() }}</p>
+    }
+    <fieldset>
+      <legend class="label">Nuevo estado</legend>
+      <div class="mt-1 space-y-2">
+        @for (e of estados; track e) {
+          <label
+            class="flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 transition-colors"
+            [class]="estadoSeleccionado() === e ? 'border-primary bg-primary-soft' : 'border-line hover:bg-surface-hover'"
+          >
+            <input
+              type="radio"
+              name="estado"
+              class="accent-(--primary)"
+              [value]="e"
+              [checked]="estadoSeleccionado() === e"
+              (change)="estadoSeleccionado.set(e)"
+            />
+            <app-status-badge [estado]="e" />
+            @if (incidenciaEstado()?.estado === e) {
+              <span class="ml-auto text-xs text-fg-subtle">Actual</span>
+            }
+          </label>
+        }
+      </div>
+    </fieldset>
+    <div class="flex justify-end gap-2 border-t border-line pt-4">
+      <button type="button" class="btn btn-secondary" (click)="isOpenChangeState.set(false)">Cancelar</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="loadingEstado() || estadoSeleccionado() === incidenciaEstado()?.estado"
+      >
+        @if (loadingEstado()) {
+          <loading-spinner /> Guardando…
+        } @else {
+          Guardar
+        }
+      </button>
+    </div>
+  </form>
+</app-modal-generic>
+
+<!-- ASIGNAR TÉCNICO (ADMIN) -->
+<app-modal-generic
+  [(isOpen)]="isOpenModalTecnicos"
+  title="Asignar técnico"
+  [description]="ticketKey(incidenciaModal()?.id) + ' · ' + (incidenciaModal()?.titulo ?? '')"
+  size="lg"
+>
+  @if (incidenciaModal(); as inc) {
+    <dl class="mb-4 grid grid-cols-2 gap-3 rounded-md bg-surface-sunken p-3 text-sm sm:grid-cols-4">
+      <div>
+        <dt class="text-xs text-fg-subtle">Estado</dt>
+        <dd class="mt-1"><app-status-badge [estado]="inc.estado" /></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-fg-subtle">Prioridad</dt>
+        <dd class="mt-1"><app-priority-badge [prioridad]="inc.prioridad" /></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-fg-subtle">Reportado por</dt>
+        <dd class="mt-1 truncate text-fg">{{ inc.usuario.nombre }}</dd>
+      </div>
+      <div>
+        <dt class="text-xs text-fg-subtle">Creada</dt>
+        <dd class="mt-1 text-fg">{{ inc.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+      </div>
+    </dl>
+  }
+
+  <div class="mb-3 flex items-center justify-between gap-3">
+    <div class="relative flex-1">
+      <app-icon name="search" class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-fg-subtle" />
+      <input
+        type="search"
+        class="input pl-8"
+        placeholder="Buscar técnico por nombre"
+        aria-label="Buscar técnico por nombre"
+        [value]="filtroTecnico()"
+        (input)="filtroTecnico.set($any($event.target).value)"
+      />
+    </div>
+    <span class="text-xs whitespace-nowrap text-fg-subtle">{{ tecnicosFiltrados().length }} técnicos</span>
+  </div>
+
+  <div class="max-h-72 overflow-y-auto rounded-md border border-line" role="radiogroup" aria-label="Técnicos">
+    @if (loadingTecnicos()) {
+      <div class="flex items-center justify-center gap-2 py-10 text-fg-subtle">
+        <loading-spinner /> Cargando técnicos…
+      </div>
+    } @else {
+      @for (tec of tecnicosFiltrados(); track tec.id) {
+        @let seleccionado = idTecnicoUpdate() === toNumber(tec.id);
+        @let c = carga(tec.cantidadIncidenciaPendiente);
+        <label
+          class="flex cursor-pointer items-center gap-3 border-b border-line px-3 py-2.5 last:border-b-0"
+          [class]="seleccionado ? 'bg-primary-soft' : 'hover:bg-surface-hover'"
+        >
+          <input
+            type="radio"
+            name="tecnico"
+            class="accent-(--primary)"
+            [checked]="seleccionado"
+            (change)="idTecnicoUpdate.set(toNumber(tec.id))"
+          />
+          <app-avatar [nombre]="tec.nombre" [size]="32" />
+          <span class="min-w-0 flex-1">
+            <span class="block truncate font-medium text-fg">{{ tec.nombre }}</span>
+            <span class="block text-xs text-fg-subtle">
+              {{ tec.cantidadIncidenciaPendiente }} incidencias activas
+              @if (incidenciaModal()?.tecnico && toNumber(incidenciaModal()!.tecnico!.id) === toNumber(tec.id)) {
+                · asignado actualmente
+              }
+            </span>
+          </span>
+          <span class="lozenge" [class]="c.clase">{{ c.texto }}</span>
+        </label>
+      } @empty {
+        <p class="py-10 text-center text-fg-subtle">No se encontraron técnicos.</p>
+      }
+    }
+  </div>
+
+  @if (errorTecnico()) {
+    <p class="alert alert-error mt-3" role="alert">{{ errorTecnico() }}</p>
+  }
+
+  <div class="mt-4 flex justify-end gap-2 border-t border-line pt-4">
+    <button type="button" class="btn btn-secondary" (click)="isOpenModalTecnicos.set(false)">Cancelar</button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      [disabled]="asignando() || idTecnicoUpdate() === null"
+      (click)="asignarTecnicoIncidencia()"
+    >
+      @if (asignando()) {
+        <loading-spinner /> Asignando…
+      } @else {
+        Asignar técnico
+      }
+    </button>
+  </div>
+</app-modal-generic>
