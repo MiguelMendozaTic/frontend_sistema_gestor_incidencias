@@ -12,11 +12,13 @@ import {
   PRIORIDADES,
   Status,
 } from 'src/app/core/models/incident.model';
-import { Solicitante, TecnicosDTO, Usuario } from 'src/app/core/models/usuario.model';
+import { AREA_LABEL, Solicitante, TecnicosDTO, Usuario } from 'src/app/core/models/usuario.model';
 import { Equipo, equipoLabel, TIPO_EQUIPO_LABEL } from 'src/app/core/models/equipo.model';
 import { EquipoService } from '@services/equipo.service';
 import { UserService } from '@services/user.service';
+import { AuthService } from '@services/auth.service';
 import { LoadingSpinner } from '../loading-spinner/loading-spinner';
+import { Avatar } from '../badges/badges';
 import { SolicitantePicker } from '../solicitante-picker/solicitante-picker';
 import { Icon } from '../icon/icon';
 
@@ -37,7 +39,7 @@ const aSolicitante = (u: Usuario): Solicitante => ({
  */
 @Component({
   selector: 'app-incidencia-form',
-  imports: [ReactiveFormsModule, LoadingSpinner, Icon, SolicitantePicker],
+  imports: [ReactiveFormsModule, LoadingSpinner, Icon, SolicitantePicker, Avatar],
   template: `
     <form [formGroup]="form" (ngSubmit)="submitForm()" class="space-y-4" novalidate>
       @if (error()) {
@@ -83,11 +85,30 @@ const aSolicitante = (u: Usuario): Solicitante => ({
         <p class="mb-3 text-xs text-fg-subtle">
           Usuario que recibirá por correo los avisos de la incidencia: registro, seguimiento, cambios y cierre.
         </p>
-        <app-solicitante-picker
-          [seleccionado]="solicitante()"
-          (seleccionadoChange)="elegirSolicitante($event)"
-          [invalido]="form.controls.solicitanteId.touched && form.controls.solicitanteId.invalid"
-        />
+        @if (puedeElegirSolicitante()) {
+          <app-solicitante-picker
+            [seleccionado]="solicitante()"
+            (seleccionadoChange)="elegirSolicitante($event)"
+            [invalido]="form.controls.solicitanteId.touched && form.controls.solicitanteId.invalid"
+          />
+        } @else {
+          <!-- Empleado: la incidencia siempre queda a su nombre -->
+          @if (solicitante(); as s) {
+            <div class="flex items-center gap-3 rounded-md border border-line bg-surface-sunken px-3 py-2.5">
+              <app-avatar [nombre]="s.nombre" [size]="36" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-fg">{{ s.nombre }}</p>
+                <p class="truncate text-xs text-fg-subtle">&#64;{{ s.username }} · {{ areaLabel[s.area] }}</p>
+                <p class="mt-0.5 flex items-center gap-1 truncate text-xs text-fg-muted" [title]="s.correo">
+                  <app-icon name="send" [size]="12" /> Se notificará a
+                  <strong class="font-medium">{{ s.correo }}</strong>
+                </p>
+              </div>
+            </div>
+          } @else {
+            <p class="flex items-center gap-2 text-sm text-fg-subtle"><loading-spinner /> Cargando tus datos…</p>
+          }
+        }
       </fieldset>
 
       <div>
@@ -201,8 +222,10 @@ export class IncidenciaForm {
     solicitanteId: this.fb.control<number | null>(null, Validators.required),
   });
 
-  /* SOLICITANTE: por defecto quien registra la incidencia */
+  /* SOLICITANTE: por defecto quien registra la incidencia; solo el admin puede cambiarlo */
   private userService = inject(UserService);
+  protected puedeElegirSolicitante = inject(AuthService).isAdmin;
+  protected areaLabel = AREA_LABEL;
   protected solicitante = signal<Solicitante | null>(null);
 
   protected elegirSolicitante(s: Solicitante | null) {

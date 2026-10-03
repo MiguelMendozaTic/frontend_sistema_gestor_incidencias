@@ -134,12 +134,17 @@ import { LoadingSpinner } from '../loading-spinner/loading-spinner';
             type="password"
             class="input"
             autocomplete="new-password"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Ej. @Admin123"
+            aria-describedby="uf-password-hint"
             [formField]="usuarioForm.password"
             [attr.aria-invalid]="mostrarError(usuarioForm.password)"
           />
           @if (mostrarError(usuarioForm.password)) {
             <span class="field-error">{{ usuarioForm.password().errors()[0].message }}</span>
+          } @else {
+            <span id="uf-password-hint" class="text-xs text-fg-subtle">
+              Mínimo 6 caracteres, una mayúscula, una minúscula, un número y un carácter especial.
+            </span>
           }
         </div>
         <div>
@@ -219,9 +224,17 @@ export class UserFormComponent {
       maxLength(schemaPath.username, 20, { message: 'Máximo 20 caracteres' });
       this.notSpaces(schemaPath.username, { message: 'Sin espacios' });
 
+      // Misma política que el backend (UsuarioDTO.password)
       required(schemaPath.password, { message: 'La contraseña es obligatoria' });
       this.notSpaces(schemaPath.password, { message: 'Sin espacios' });
       minLength(schemaPath.password, 6, { message: 'Mínimo 6 caracteres' });
+      maxLength(schemaPath.password, 72, { message: 'Máximo 72 caracteres' });
+      this.contiene(schemaPath.password, /[A-Z]/, { message: 'Debe incluir al menos una mayúscula' });
+      this.contiene(schemaPath.password, /[a-z]/, { message: 'Debe incluir al menos una minúscula' });
+      this.contiene(schemaPath.password, /\d/, { message: 'Debe incluir al menos un número' });
+      this.contiene(schemaPath.password, /[^A-Za-z0-9\s]/, {
+        message: 'Debe incluir al menos un carácter especial (ej. @ # $ ! .)',
+      });
 
       required(schemaPath.confirmPassword, { message: 'Confirma la contraseña' });
       validate(schemaPath.confirmPassword, ({ value, valueOf }) =>
@@ -273,6 +286,12 @@ export class UserFormComponent {
   private notSpaces(path: SchemaPath<string>, options: { message: string }) {
     validate(path, ({ value }) =>
       value().includes(' ') ? { kind: 'no-spaces', message: options.message } : undefined,
+    );
+  }
+
+  private contiene(path: SchemaPath<string>, patron: RegExp, options: { message: string }) {
+    validate(path, ({ value }) =>
+      value() && !patron.test(value()) ? { kind: 'pattern', message: options.message } : undefined,
     );
   }
 

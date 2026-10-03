@@ -1,8 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { UserService } from '@services/user.service';
-import { AuthService } from '@services/auth.service';
 import { AREA_LABEL, Usuario } from 'src/app/core/models/usuario.model';
 import { Icon } from '@shared/components/icon/icon';
 import { LoadingSpinner } from '@shared/components/loading-spinner/loading-spinner';
@@ -64,29 +62,27 @@ type Campo = 'nombre' | 'username' | 'correo';
               <label for="pf-nombre" class="label">Nombre completo</label>
               <input id="pf-nombre" type="text" formControlName="nombre" class="input" [attr.aria-invalid]="invalido('nombre')" />
               @if (invalido('nombre')) {
-                <span class="field-error">Mínimo 4 caracteres.</span>
+                <span class="field-error">Entre 4 y 35 caracteres.</span>
               }
             </div>
             <div>
               <label for="pf-usuario" class="label">Usuario</label>
-              <input id="pf-usuario" type="text" formControlName="username" class="input" [attr.aria-invalid]="invalido('username')" />
-              @if (invalido('username')) {
-                <span class="field-error">Mínimo 4 caracteres.</span>
-              } @else if (editMode()) {
-                <span class="field-hint">Si lo cambias, tendrás que volver a iniciar sesión.</span>
+              <input id="pf-usuario" type="text" formControlName="username" class="input" readonly />
+              @if (editMode()) {
+                <span class="field-hint">Solo el administrador puede cambiarlo.</span>
               }
             </div>
             <div>
               <label for="pf-correo" class="label">Correo electrónico</label>
-              <input id="pf-correo" type="email" formControlName="correo" class="input" [attr.aria-invalid]="invalido('correo')" />
-              @if (invalido('correo')) {
-                <span class="field-error">Ingresa un correo válido.</span>
+              <input id="pf-correo" type="email" formControlName="correo" class="input" readonly />
+              @if (editMode()) {
+                <span class="field-hint">Solo el administrador puede cambiarlo.</span>
               }
             </div>
           </div>
 
           <p class="mt-4 flex items-center gap-1.5 text-xs text-fg-subtle">
-            <app-icon name="lock" [size]="12" /> El área, el estado y los roles solo los modifica un administrador.
+            <app-icon name="lock" [size]="12" /> Tu usuario, correo, área, estado y roles solo los modifica un administrador.
           </p>
 
           <div class="mt-5 flex justify-end gap-2 border-t border-line pt-4">
@@ -113,8 +109,6 @@ type Campo = 'nombre' | 'username' | 'correo';
 export class PerfilUsuario {
   private fb = inject(FormBuilder);
   private usuarioService = inject(UserService);
-  private authService = inject(AuthService);
-  private router = inject(Router);
 
   protected areaLabel = AREA_LABEL;
   user = signal<Usuario | null>(null);
@@ -124,9 +118,10 @@ export class PerfilUsuario {
   aviso = signal('');
 
   form = this.fb.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.minLength(4), noWhitespaceValidator]],
-    username: ['', [Validators.required, Validators.minLength(4), noWhitespaceValidator]],
-    correo: ['', [Validators.required, Validators.email]],
+    nombre: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(35), noWhitespaceValidator]],
+    // Solo lectura: los cambia el administrador desde Usuarios
+    username: [''],
+    correo: [''],
   });
 
   constructor() {
@@ -159,7 +154,7 @@ export class PerfilUsuario {
   editar() {
     this.aviso.set('');
     this.editMode.set(true);
-    this.form.enable();
+    this.form.controls.nombre.enable(); // usuario y correo siguen bloqueados
   }
 
   cancelar() {
@@ -172,29 +167,20 @@ export class PerfilUsuario {
       this.form.markAllAsTouched();
       return;
     }
-    const payload = this.form.getRawValue();
-    const cambioUsuario = payload.username.trim() !== this.user()?.username;
+    const u = this.user()!;
     this.guardando.set(true);
     this.error.set('');
 
     this.usuarioService
-      .actualizarPerfil({ ...payload, nombre: payload.nombre.trim(), username: payload.username.trim() })
+      // Se envían el usuario y el correo actuales: el backend solo acepta cambios de nombre
+      .actualizarPerfil({ username: u.username, correo: u.correo, nombre: this.form.getRawValue().nombre.trim() })
       .subscribe({
         next: (usuarioActualizado) => {
           this.guardando.set(false);
           this.user.set(usuarioActualizado);
           this.editMode.set(false);
           this.restablecer();
-          if (cambioUsuario) {
-            // El token lleva el usuario anterior: hay que iniciar sesión de nuevo.
-            this.aviso.set('Perfil actualizado. Cambiaste tu usuario, vuelve a iniciar sesión…');
-            setTimeout(() => {
-              this.authService.logout();
-              this.router.navigate(['/auth/login']);
-            }, 3000);
-          } else {
-            this.aviso.set('Perfil actualizado correctamente.');
-          }
+          this.aviso.set('Perfil actualizado correctamente.');
         },
         error: (e) => {
           this.guardando.set(false);

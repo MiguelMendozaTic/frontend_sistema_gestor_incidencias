@@ -11,9 +11,6 @@ export const AUTH_ROUTES: Routes = [
     loadComponent: () =>
       import('./login/login.component').then((m) => m.LoginComponent),
   },
-  {
-    path: 'register',
-    loadComponent: () =>
-      import('./register/register.component').then((m) => m.RegisterComponent),
-  },
+  // Sin registro público: el administrador da de alta a los usuarios desde el panel.
+  { path: 'register', redirectTo: 'login' },
 ];

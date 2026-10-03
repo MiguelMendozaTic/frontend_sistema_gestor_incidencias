@@ -1,10 +1,10 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import { environment } from 'src/environments/environment';
-import { CurrentUser, LoginCredentials, RegisterData } from '../models/usuario.model';
-import { ApiResponse, Decoded, LoginResponse, UsuarioResponseDto } from '../models/auth.response';
+import { CurrentUser, LoginCredentials } from '../models/usuario.model';
+import { Decoded, LoginResponse } from '../models/auth.response';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -35,11 +35,6 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${this.url}/login`, credentials)
       .pipe(tap((response) => this.registerSession(response.token)));
-  }
-
-  /** Registro público: el backend siempre crea el usuario como empleado. */
-  registerNewUser(newUser: RegisterData): Observable<ApiResponse<UsuarioResponseDto>> {
-    return this.http.post<ApiResponse<UsuarioResponseDto>>(`${this.url}/api/auth/register`, newUser);
   }
 
   registerSession(token: string): void {

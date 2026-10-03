@@ -1,5 +1,5 @@
 import { Component, signal, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
@@ -11,7 +11,7 @@ import { AuthShell } from '../auth-shell';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, AuthShell, LoadingSpinner, Icon],
+  imports: [ReactiveFormsModule, AuthShell, LoadingSpinner, Icon],
   template: `
     <app-auth-shell>
       <h1 class="text-xl font-semibold text-fg">Iniciar sesión</h1>
@@ -73,8 +73,7 @@ import { AuthShell } from '../auth-shell';
       </form>
 
       <p class="mt-6 text-center text-sm text-fg-subtle">
-        ¿No tienes cuenta?
-        <a routerLink="/auth/register" class="font-medium text-primary hover:underline">Regístrate</a>
+        ¿No tienes cuenta? Solicítala al administrador del sistema.
       </p>
 
       <details after-card class="card mt-4 px-4 py-3 text-sm">
