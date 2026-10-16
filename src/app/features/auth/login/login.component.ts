@@ -87,11 +87,11 @@ import { AuthShell } from '../auth-shell';
               <tr class="border-t border-line">
                 <td class="py-1.5">{{ demo.rol }}</td>
                 <td>
-                  <button type="button" class="cursor-pointer font-mono text-primary hover:underline" (click)="usarDemo(demo.usuario)">
+                  <button type="button" class="cursor-pointer font-mono text-primary hover:underline" (click)="usarDemo(demo)">
                     {{ demo.usuario }}
                   </button>
                 </td>
-                <td class="font-mono">123456</td>
+                <td class="font-mono">{{ demo.password }}</td>
               </tr>
             }
           </tbody>
@@ -108,9 +108,9 @@ export class LoginComponent {
   private router = inject(Router);
 
   protected demos = [
-    { rol: 'Administrador', usuario: 'jaime' },
-    { rol: 'Empleado', usuario: 'juan' },
-    { rol: 'Técnico', usuario: 'pedro' },
+    { rol: 'Administrador', usuario: 'admin', password: 'Admin123!' },
+    { rol: 'Empleado', usuario: 'empleado1', password: 'Empleado123!' },
+    { rol: 'Técnico nivel 1', usuario: 'tecnico1', password: 'Tecnico123!' },
   ];
 
   loginForm = this.fb.nonNullable.group({
@@ -123,8 +123,8 @@ export class LoginComponent {
     return c.touched && c.invalid;
   }
 
-  protected usarDemo(usuario: string) {
-    this.loginForm.patchValue({ usuario, password: '123456' });
+  protected usarDemo(demo: (typeof this.demos)[number]) {
+    this.loginForm.patchValue({ usuario: demo.usuario, password: demo.password });
   }
 
   onSubmit() {

@@ -33,7 +33,7 @@ export class AuthService {
 
   login(credentials: LoginCredentials) {
     return this.http
-      .post<LoginResponse>(`${this.url}/login`, credentials)
+      .post<LoginResponse>(`${this.url}/api/login`, credentials)
       .pipe(tap((response) => this.registerSession(response.token)));
   }
 
