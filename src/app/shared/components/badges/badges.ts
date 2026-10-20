@@ -27,11 +27,15 @@ export class StatusBadge {
   protected clase = computed(() => ESTADO_CLASS[this.estado()] ?? 'bg-neutral-soft text-neutral-soft-fg');
 }
 
-const PRIORIDAD_ICON: Record<Prioridad, { icon: IconName; color: string }> = {
+const PRIORIDAD_ICON: Record<string, { icon: IconName; color: string }> = {
   CRITICA: { icon: 'chevrons-up', color: 'text-danger' },
+  CRITICO: { icon: 'chevrons-up', color: 'text-danger' },
   ALTA: { icon: 'chevron-up', color: 'text-orange-soft-fg' },
+  ALTO: { icon: 'chevron-up', color: 'text-orange-soft-fg' },
   MEDIA: { icon: 'equal', color: 'text-warning-soft-fg' },
+  MEDIO: { icon: 'equal', color: 'text-warning-soft-fg' },
   BAJA: { icon: 'chevron-down', color: 'text-primary' },
+  BAJO: { icon: 'chevron-down', color: 'text-primary' },
 };
 
 /** Prioridad al estilo de las herramientas ITSM: icono direccional + nombre. */
@@ -51,9 +55,15 @@ const PRIORIDAD_ICON: Record<Prioridad, { icon: IconName; color: string }> = {
   `,
 })
 export class PriorityBadge {
-  prioridad = input<Prioridad | null | undefined>(null);
-  protected meta = (p: Prioridad) => PRIORIDAD_ICON[p];
-  protected label = (p: Prioridad) => PRIORIDAD_LABEL[p];
+  prioridad = input<Prioridad | string | null | undefined>(null);
+  protected meta = (p: string) => {
+    const k = (p || '').toUpperCase();
+    return PRIORIDAD_ICON[k] ?? { icon: 'equal', color: 'text-warning-soft-fg' };
+  };
+  protected label = (p: string) => {
+    const k = (p || '').toUpperCase();
+    return PRIORIDAD_LABEL[k] ?? p;
+  };
 }
 
 @Component({

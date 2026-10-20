@@ -32,11 +32,15 @@ export const ESTADO_LABEL: Record<Status, string> = {
   CERRADO: 'Cerrada',
 };
 
-export const PRIORIDAD_LABEL: Record<Prioridad, string> = {
+export const PRIORIDAD_LABEL: Record<string, string> = {
   CRITICA: 'Crítica',
+  CRITICO: 'Crítica',
   ALTA: 'Alta',
+  ALTO: 'Alta',
   MEDIA: 'Media',
+  MEDIO: 'Media',
   BAJA: 'Baja',
+  BAJO: 'Baja',
 };
 
 export interface IncidenciaCreate {
